@@ -1,77 +1,108 @@
-#!/bin/sh
+# Day 17 — Loops, ALB, Namespace, Top Processes
 
-# An example hook script to validate a patch (and/or patch series) before
-# sending it via email.
-#
-# The hook should exit with non-zero status after issuing an appropriate
-# message if it wants to prevent the email(s) from being sent.
-#
-# To enable this hook, rename this file to "sendemail-validate".
-#
-# By default, it will only check that the patch(es) can be applied on top of
-# the default upstream branch without conflicts in a secondary worktree. After
-# validation (successful or not) of the last patch of a series, the worktree
-# will be deleted.
-#
-# The following config variables can be set to change the default remote and
-# remote ref that are used to apply the patches against:
-#
-#   sendemail.validateRemote (default: origin)
-#   sendemail.validateRemoteRef (default: HEAD)
-#
-# Replace the TODO placeholders with appropriate checks according to your
-# needs.
+## 🔹 Ansible — Create Multiple Users in Loop
 
-validate_cover_letter () {
-	file="$1"
-	# TODO: Replace with appropriate checks (e.g. spell checking).
-	true
+---
+- name: Create multiple Pathnex users
+  hosts: all
+  become: yes
+
+  vars:
+    users:
+      - dev1
+      - dev2
+      - dev3
+
+  tasks:
+    - name: Create users
+      user:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ users }}"
+
+
+## 🔹 Terraform — Application Load Balancer
+
+resource "aws_lb" "PathnexALB" {
+  name               = "pathnex-alb"
+  load_balancer_type = "application"
+  subnets            = [aws_subnet.PathnexSubnet.id]
+
+  tags = {
+    Name = "Pathnex-ALB"
+  }
 }
 
-validate_patch () {
-	file="$1"
-	# Ensure that the patch applies without conflicts.
-	git am -3 "$file" || return
-	# TODO: Replace with appropriate checks for this patch
-	# (e.g. checkpatch.pl).
-	true
+
+## 🔹 Kubernetes — Namespace + Deployment
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: pathnex-namespace
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pathnex-deploy
+  namespace: pathnex-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pathnex
+  template:
+    metadata:
+      labels:
+        app: pathnex
+    spec:
+      containers:
+        - name: app
+          image: nginx
+
+
+## 🔹 Shell Script — Top 5 Memory Processes
+
+#!/bin/bash
+
+ps aux --sort=-%mem | head -n 6
+
+
+# Deployment Simulation
+
+## 🔹 Jenkins Pipeline — Simulated Deployment
+You will learn how to **simulate deployment to different environments**.
+
+pipeline {
+    agent any
+    parameters {
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'staging', 'prod'], description: 'Deployment Environment')
+    }
+    environment {
+        INSTITUTE_NAME = "Pathnex"
+    }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh 'echo "Deploying $INSTITUTE_NAME application to $ENVIRONMENT"'
+            }
+        }
+    }
 }
 
-validate_series () {
-	# TODO: Replace with appropriate checks for the whole series
-	# (e.g. quick build, coding style checks, etc.).
-	true
-}
+## 🔹 GitLab CI — Deployment Simulation
+You will learn how to **simulate deployment in GitLab CI using environment variable**.
 
-# main -------------------------------------------------------------------------
+stages:
+  - deploy
 
-if test "$GIT_SENDEMAIL_FILE_COUNTER" = 1
-then
-	remote=$(git config --default origin --get sendemail.validateRemote) &&
-	ref=$(git config --default HEAD --get sendemail.validateRemoteRef) &&
-	worktree=$(mktemp --tmpdir -d sendemail-validate.XXXXXXX) &&
-	git worktree add -fd --checkout "$worktree" "refs/remotes/$remote/$ref" &&
-	git config --replace-all sendemail.validateWorktree "$worktree"
-else
-	worktree=$(git config --get sendemail.validateWorktree)
-fi || {
-	echo "sendemail-validate: error: failed to prepare worktree" >&2
-	exit 1
-}
+variables:
+  INSTITUTE_NAME: "Pathnex"
+  ENVIRONMENT: "staging"
 
-unset GIT_DIR GIT_WORK_TREE
-cd "$worktree" &&
-
-if grep -q "^diff --git " "$1"
-then
-	validate_patch "$1"
-else
-	validate_cover_letter "$1"
-fi &&
-
-if test "$GIT_SENDEMAIL_FILE_COUNTER" = "$GIT_SENDEMAIL_FILE_TOTAL"
-then
-	git config --unset-all sendemail.validateWorktree &&
-	trap 'git worktree remove -ff "$worktree"' EXIT &&
-	validate_series
-fi
+deploy:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - echo "Deploying $INSTITUTE_NAME application to $ENVIRONMENT"

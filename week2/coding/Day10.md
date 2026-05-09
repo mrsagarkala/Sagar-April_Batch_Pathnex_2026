@@ -1,49 +1,105 @@
-#!/bin/sh
-#
-# An example hook script to verify what is about to be committed.
-# Called by "git commit" with no arguments.  The hook should
-# exit with non-zero status after issuing an appropriate message if
-# it wants to stop the commit.
-#
-# To enable this hook, rename this file to "pre-commit".
+# Day 10 — Conditions, Route Table, Secret, Loops
 
-if git rev-parse --verify HEAD >/dev/null 2>&1
-then
-	against=HEAD
-else
-	# Initial commit: diff against an empty tree object
-	against=$(git hash-object -t tree /dev/null)
-fi
+## 🔹 Ansible — When Condition
 
-# If you want to allow non-ASCII filenames set this variable to true.
-allownonascii=$(git config --type=bool hooks.allownonascii)
+---
+- name: Install tool based on OS
+  hosts: all
+  become: yes
 
-# Redirect output to stderr.
-exec 1>&2
+  tasks:
+    - name: Install htop
+      yum:
+        name: htop
+        state: present
+      when: ansible_facts['os_family'] == "RedHat"
 
-# Cross platform projects tend to avoid non-ASCII filenames; prevent
-# them from being added to the repository. We exploit the fact that the
-# printable range starts at the space character and ends with tilde.
-if [ "$allownonascii" != "true" ] &&
-	# Note that the use of brackets around a tr range is ok here, (it's
-	# even required, for portability to Solaris 10's /usr/bin/tr), since
-	# the square bracket bytes happen to fall in the designated range.
-	test $(git diff-index --cached --name-only --diff-filter=A -z $against |
-	  LC_ALL=C tr -d '[ -~]\0' | wc -c) != 0
-then
-	cat <<\EOF
-Error: Attempt to add a non-ASCII file name.
 
-This can cause problems if you want to work with people on other platforms.
+## 🔹 Terraform — Route Table + Association
 
-To be portable it is advisable to rename the file.
+resource "aws_route_table" "PathnexRT" {
+  vpc_id = aws_vpc.PathnexVPC.id
 
-If you know what you are doing you can disable this check using:
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.PathnexIGW.id
+  }
 
-  git config hooks.allownonascii true
-EOF
-	exit 1
-fi
+  tags = {
+    Name = "Pathnex-RouteTable"
+  }
+}
 
-# If there are whitespace errors, print the offending file names and fail.
-exec git diff-index --check --cached $against --
+resource "aws_route_table_association" "PathnexRTA" {
+  subnet_id      = aws_subnet.PathnexSubnet.id
+  route_table_id = aws_route_table.PathnexRT.id
+}
+
+
+## 🔹 Kubernetes — Secret
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: pathnex-secret
+type: Opaque
+data:
+  password: cGF0aG5leDEyMw==   # "pathnex123" base64
+
+
+## 🔹 Shell Script — For Loop 1–10
+
+#!/bin/bash
+
+for i in {1..10}; do
+  echo "Number: $i"
+done
+
+
+# Caching Dependencies
+
+## 🔹 Jenkins Pipeline — Cache Maven Dependencies
+You will learn how to **reuse dependencies to speed up builds**.
+
+pipeline {
+    agent any
+    environment {
+        INSTITUTE_NAME = "Pathnex"
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/Pathnex/sample-java-app.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh '''
+                if [ -d ".m2" ]; then
+                    echo "Using cached dependencies"
+                else
+                    mvn clean compile
+                fi
+                '''
+            }
+        }
+    }
+}
+
+## 🔹 GitLab CI — Cache Dependencies
+You will learn how to **cache dependencies in GitLab CI**.
+
+stages:
+  - build
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  cache:
+    key: maven-cache
+    paths:
+      - .m2/repository
+  script:
+    - git clone https://github.com/Pathnex/sample-java-app.git
+    - cd sample-java-app
+    - mvn clean compile

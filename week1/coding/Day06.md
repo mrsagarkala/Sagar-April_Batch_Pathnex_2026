@@ -1,24 +1,89 @@
-#!/bin/sh
-#
-# An example hook script to check the commit log message.
-# Called by "git commit" with one argument, the name of the file
-# that has the commit message.  The hook should exit with non-zero
-# status after issuing an appropriate message if it wants to stop the
-# commit.  The hook is allowed to edit the commit message file.
-#
-# To enable this hook, rename this file to "commit-msg".
+# Day 06 — DEBUG DAY
 
-# Uncomment the below to add a Signed-off-by line to the message.
-# Doing this in a hook is a bad idea in general, but the prepare-commit-msg
-# hook is more suited to it.
-#
-# SOB=$(git var GIT_AUTHOR_IDENT | sed -n 's/^\(.*>\).*$/Signed-off-by: \1/p')
-# grep -qs "^$SOB" "$1" || echo "$SOB" >> "$1"
+Fix these broken files:
 
-# This example catches duplicate Signed-off-by lines.
+## 🔹 Ansible (broken)
 
-test "" = "$(grep '^Signed-off-by: ' "$1" |
-	 sort | uniq -c | sed -e '/^[ 	]*1[ 	]/d')" || {
-	echo >&2 Duplicate Signed-off-by lines.
-	exit 1
+- name Install nginx
+ hosts all
+ become yes
+ tasks:
+  -name: Install nginx
+  yum:
+    name nginx
+    state present
+
+
+## 🔹 Terraform (broken)
+
+resource "aws_instance" "BrokenEC2" {
+  ami = "ami-0xyz"
+  instance_type = t2.micro
+tags {
+ Name = "Broken"
 }
+}
+
+## 🔹 Kubernetes (broken)
+
+apiVersion v1
+kind Pod
+metadata:
+ name pathnex
+spec
+ containers:
+   - name app
+     image nginx
+
+
+
+#  Debugging Pipelines
+## 🔹 Jenkins Pipeline — Debugging
+You will learn how to **fix broken stages and handle errors**.
+
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Pathnex/sample-java-app.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh '''
+                mvn clean compile || { echo "Compile failed"; exit 1; }
+                '''
+            }
+        }
+        stage('Test') {
+            steps {
+                sh '''
+                mvn test || { echo "Tests failed"; exit 1; }
+                '''
+            }
+        }
+    }
+}
+
+## 🔹 GitLab CI — Debugging
+You will learn how to **handle job failures and exit codes**.
+
+stages:
+  - build
+  - test
+
+build:
+  stage: build
+  image: maven:3.8.1-jdk-17
+  script:
+    - git clone https://github.com/Pathnex/sample-java-app.git
+    - cd sample-java-app
+    - mvn clean compile || { echo "Compile failed"; exit 1; }
+
+test:
+  stage: test
+  image: maven:3.8.1-jdk-17
+  script:
+    - cd sample-java-app
+    - mvn test || { echo "Tests failed"; exit 1; }

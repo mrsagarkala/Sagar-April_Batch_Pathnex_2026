@@ -1,36 +1,56 @@
-# DevOps_Hands_On_Practice_L1
-This repo offers foundational code to help you build DevOps skills with tools like Shell Script, Ansible, Terraform, Kubernetes, Jenkins, and GitLab. It includes practical examples and configurations for automating infrastructure, managing containers, and streamlining CI/CD processes, enhancing your DevOps expertise.
+# Day 30 — SPEED TYPING (LEVEL 3)
 
-# Pathnex 30-Day DevOps Hands-On Challenge(New joiners can start working on it from the day they learn GIT)
+Rewrite all FOUR from scratch in **12 minutes**:
 
-This repository contains a complete 30-day practical DevOps learning challenge.  
-Each day includes:
+### Ansible:
+- Create user "pathnex-admin"
+- Add SSH key
+- Set shell to /bin/bash
 
-- Ansible YAML task  
-- Terraform AWS EC2 task  
-- Kubernetes YAML task  
-- Shell scripting task  
-- Jenkins Pipeline task  
-- GitLab CI/CD pipeline task  
-- Full example code (students must retype manually)
+### Terraform:
+- Create EC2 with tag:
+     Project = "Pathnex-Training"
 
-EC2 instance types used:  
-- c5.xlarge  
-- r5.2xlarge  
-- r6i.4xlarge  
-- c6i.8xlarge  
-- c6a.12xlarge  
+### Kubernetes:
+- Deployment (2 replicas)
+- Expose via ClusterIP
 
-Naming convention:  
-Everything uses "Pathnex" (e.g., PathnexEC2, PathnexVPC, PathnexDeployment, Pathnex-Training).
+### Shell:
+- Menu with:
+  1) IP
+  2) Disk
+  3) Memory
 
-Environment variables used in pipelines:  
-- INSTITUTE_NAME = "Pathnex"  
-- TEAM = "DevOps"  
-- ENV = "prod"  
-- PROJECT = "Pathnex-Training"  
+## 5️⃣ Jenkins Pipeline
+You will learn to **automate all tasks in a Jenkins Pipeline** under real-world stages:
 
-Students must **rewrite all code from scratch** to improve speed, understanding, and real-world readiness.  
+- Create **Declarative Pipeline** with stages:
+- Infrastructure – Terraform EC2 with tag Project = "Pathnex-Training"
+- App Deployment – Ansible user creation, SSH setup, Kubernetes deployment
+- Monitoring Checks – Shell menu to display:
+- IP
+- Disk
+- Memory
 
-Happy learning,  
-Pathnex
+- Use environment variables for all stages:
+- INSTITUTE_NAME = "Pathnex"
+- TEAM = "DevOps"
+- ENV = "prod"
+- PROJECT = "Pathnex-Training"
+
+## 6️⃣ GitLab CI
+You will learn to **combine all tasks in a GitLab CI pipeline**:
+
+- Create `.gitlab-ci.yml` with stages:
+- infrastructure – Terraform EC2 with Project tag
+- app_deployment – Ansible + Kubernetes deployment
+- monitoring_checks – Shell menu checks for:
+- IP
+- Disk
+- Memory
+
+- Define variables:
+- INSTITUTE_NAME = "Pathnex"
+- TEAM = "DevOps"
+- ENV = "prod"
+- PROJECT = "Pathnex-Training"
